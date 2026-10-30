@@ -9,6 +9,8 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-180.png">
 <link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <title>Jonna &amp; Migs Trip</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&family=DM+Mono:wght@500&display=swap">
@@ -377,6 +379,17 @@ button { cursor: pointer; }
 .who-pick { background: var(--bg); color: var(--ink); border-radius: 24px; padding: 28px 22px; text-align: center; max-width: 360px; width: 100%; }
 .who-pick h2 { font: 600 1.3rem var(--display); margin: 8px 0 4px; }
 .top { padding-top: env(safe-area-inset-top); }
+.itmap { height: 280px; border-radius: 20px; overflow: hidden; margin: 12px 0 8px; box-shadow: var(--shadow); background: var(--rose-soft); position: relative; z-index: 0; }
+.itmap .nomap { position: absolute; inset: auto 10px 10px 10px; z-index: 500; background: var(--card); color: var(--ink); border-radius: 12px; padding: 8px 10px; font-size: .82rem; box-shadow: var(--shadow); }
+.npin { width: 30px; height: 30px; border-radius: 50%; background: var(--rose); color: #fff; border: 3px solid #fff; display: grid; place-items: center; font: 800 14px/1 var(--body); box-shadow: 0 3px 8px rgba(0,0,0,.3); }
+.npin.done { background: #9DB8A6; }
+.maprow { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 12px; }
+.maprow a { text-decoration: none; }
+.stop .dot.n { width: 26px; height: 26px; margin-top: 10px; display: grid; place-items: center; font: 800 12px/1 var(--body); color: var(--rose); }
+.stop.done .dot.n { color: #fff; }
+.leaflet-popup-content { font: 600 13px/1.4 var(--body); color: #3B2A33; }
+.leaflet-popup-content a { color: #E5638E; }
+
 </style>
 </head><body>
 
@@ -413,7 +426,8 @@ button { cursor: pointer; }
 </div></nav>
 <div id="layer"></div>
 
-<script>window.SEED={"reminders/r09-insurance": {"createdAt": "2026-10-30T01:00:09Z", "createdBy": "jonna", "done": false, "phase": "before", "text": "Travel insurance"}, "reminders/r08-mosquito-repellent": {"createdAt": "2026-10-30T01:00:08Z", "createdBy": "jonna", "done": false, "phase": "before", "text": "Mosquito repellent"}, "reminders/r05-sako-bag": {"createdAt": "2026-10-30T01:00:05Z", "createdBy": "jonna", "done": false, "phase": "before", "text": "Sako bag"}, "reminders/r02-erceflora": {"createdAt": "2026-10-30T01:00:02Z", "createdBy": "jonna", "done": false, "phase": "before", "text": "Erceflora"}, "reminders/r03-mini-fan": {"createdAt": "2026-10-30T01:00:03Z", "createdBy": "jonna", "done": false, "phase": "before", "text": "Mini fan", "who": ""}, "reminders/r04-weighing-scale": {"createdAt": "2026-10-30T01:00:04Z", "createdBy": "jonna", "done": false, "note": "For checking baggage weight", "phase": "before", "text": "Weighing scale"}, "reminders/r06-tape": {"createdAt": "2026-10-30T01:00:06Z", "createdBy": "jonna", "done": false, "phase": "before", "text": "Tape"}, "reminders/r07-sunscreen": {"createdAt": "2026-10-30T01:00:07Z", "createdBy": "jonna", "done": false, "phase": "before", "text": "Sunscreen"}, "reminders/r01-universal-charger": {"createdAt": "2026-10-30T01:00:01Z", "createdBy": "jonna", "done": false, "phase": "before", "text": "Universal charger"}, "expenses/booked-flight-sgn-bkk": {"amount": 13300, "category": "Flights", "country": "Before trip", "createdAt": "2026-10-30T00:00:05Z", "currency": "PHP", "date": "2027-02-07", "forWhom": "both", "note": "Booked before the trip. Tap to set who paid.", "paidBy": "migs", "photos": [], "php": 13300, "rates": {"THB": 0.57, "VND": 450}, "status": "paid", "title": "Flight HCMC → Bangkok", "updatedAt": "2026-10-29T23:25:19.838Z"}, "expenses/booked-hotel-bkk": {"amount": 9872.7, "category": "Stay", "country": "Before trip", "createdAt": "2026-10-30T00:00:01Z", "currency": "PHP", "date": "2027-02-07", "forWhom": "both", "note": "Booked before the trip.", "paidBy": "migs", "photos": [], "php": 9872.7, "rates": {"THB": 0.57, "VND": 450}, "status": "paid", "title": "Hotel, Bangkok", "updatedAt": "2026-10-29T23:24:51.745Z"}, "expenses/booked-baggage-jonna": {"amount": 1400, "category": "Flights", "country": "Thailand", "createdAt": "2026-10-30T00:00:03Z", "currency": "PHP", "date": "2027-02-07", "forWhom": "migs", "note": "Baggage for Jonna. Still pending in the budget sheet.", "paidBy": "jonna", "photos": [], "php": 1400, "rates": {"THB": 0.57, "VND": 450}, "status": "unpaid", "title": "Extra baggage", "updatedAt": "2026-10-29T23:34:43.682Z"}, "expenses/booked-flight-mnl-sgn-bkk": {"amount": 22643.86, "category": "Flights", "country": "Before trip", "createdAt": "2026-10-30T00:00:06Z", "currency": "PHP", "date": "2027-02-07", "forWhom": "both", "note": "Booked before the trip. One booking covers both flights. Tap to set who paid.", "paidBy": "migs", "photos": [], "php": 22643.86, "rates": {"THB": 0.57, "VND": 450}, "status": "paid", "title": "Flights MNL ⇄ HCMC + BKK → MNL", "updatedAt": "2026-10-29T23:25:08.196Z"}, "expenses/booked-airbnb-hcmc": {"amount": 5693.53, "category": "Stay", "country": "Before trip", "createdAt": "2026-10-30T00:00:02Z", "currency": "PHP", "date": "2027-02-07", "forWhom": "both", "note": "Booked before the trip.", "paidBy": "jonna", "photos": [], "php": 5693.53, "rates": {"THB": 0.57, "VND": 450}, "status": "paid", "title": "Airbnb, Ho Chi Minh City", "updatedAt": "2026-10-29T23:34:54.192Z"}, "expenses/booked-travel-tax": {"amount": 3240, "category": "Other", "country": "Before trip", "createdAt": "2026-10-30T00:00:04Z", "currency": "PHP", "date": "2027-02-07", "forWhom": "both", "note": "Still pending in the budget sheet.", "paidBy": "", "photos": [], "php": 3240, "rates": {"THB": 0.57, "VND": 450}, "status": "unpaid", "title": "Philippine travel tax (2 × ₱1,620)"}, "settings/trip": {"rates": {"THB": 0.57, "VND": 450}, "route": "Ho Chi Minh → Bangkok · Feb 8–19, 2027", "title": "Jonna & Migs"}, "itinerary/vn01": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:01Z", "currency": "PHP", "date": "2027-02-08", "done": false, "end": "", "notes": "Add your flight time and booking number.", "place": "Tan Son Nhat International Airport", "start": "", "status": "booked", "suggested": true, "title": "Fly Manila → Ho Chi Minh (SGN)", "type": "Flight"}, "itinerary/vn02": {"booking": "", "cost": 200000, "country": "Vietnam", "createdAt": "2026-10-30T02:00:02Z", "currency": "VND", "date": "2027-02-08", "done": false, "end": "", "notes": "About 30–45 min to District 1. Book in the Grab app; pickup is outside arrivals.", "place": "Tan Son Nhat International Airport", "start": "", "status": "", "suggested": true, "title": "Grab from the airport to the Airbnb", "type": "Transpo"}, "itinerary/th07": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:25Z", "currency": "THB", "date": "2027-02-15", "done": false, "end": "12:30", "notes": "", "place": "Wat Pho", "start": "11:30", "status": "", "suggested": true, "title": "Wat Pho (Reclining Buddha)", "type": "Activity"}, "itinerary/vn17": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:17Z", "currency": "PHP", "date": "2027-02-13", "done": false, "end": "", "notes": "Leave about 3 hours before your flight.", "place": "", "start": "", "status": "", "suggested": true, "title": "Check out of the Airbnb", "type": "Stay"}, "itinerary/vn05": {"booking": "", "cost": 700000, "country": "Vietnam", "createdAt": "2026-10-30T02:00:05Z", "currency": "VND", "date": "2027-02-09", "done": false, "end": "13:00", "notes": "Most tours pick you up from District 1. Wear comfy shoes and bring water. Cost is an estimate.", "place": "Cu Chi Tunnels", "start": "07:30", "status": "tobook", "suggested": true, "title": "Cu Chi Tunnels half-day tour", "type": "Activity"}, "itinerary/th11": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:29Z", "currency": "THB", "date": "2027-02-16", "done": false, "end": "20:00", "notes": "Pick a spa near the hotel.", "place": "", "start": "19:00", "status": "", "suggested": true, "title": "Thai massage", "type": "Activity"}, "itinerary/th15": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:33Z", "currency": "PHP", "date": "2027-02-19", "done": false, "end": "", "notes": "Leave about 3 hours before your flight.", "place": "", "start": "12:00", "status": "", "suggested": true, "title": "Check out of the hotel", "type": "Stay"}, "itinerary/vn16": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:16Z", "currency": "VND", "date": "2027-02-12", "done": false, "end": "", "notes": "Or a rooftop bar in District 1.", "place": "Saigon Skydeck, Bitexco Financial Tower", "start": "17:30", "status": "", "suggested": true, "title": "Sunset over the city", "type": "Activity"}, "itinerary/vn11": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:11Z", "currency": "VND", "date": "2027-02-11", "done": false, "end": "", "notes": "Try cà phê sữa đá or egg coffee.", "place": "The Café Apartments, 42 Nguyen Hue", "start": "10:30", "status": "", "suggested": true, "title": "Coffee at The Café Apartments", "type": "Food"}, "itinerary/vn03": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:03Z", "currency": "PHP", "date": "2027-02-08", "done": false, "end": "", "notes": "Add the Airbnb address so the map link works.", "place": "", "start": "14:00", "status": "booked", "suggested": true, "title": "Check in to the Airbnb", "type": "Stay"}, "itinerary/th05": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:23Z", "currency": "THB", "date": "2027-02-14", "done": false, "end": "21:00", "notes": "It's Valentine's Day 💗 Book ahead: it sells out.", "place": "Chao Phraya River dinner cruise", "start": "19:00", "status": "tobook", "suggested": true, "title": "Valentine's dinner cruise on the river", "type": "Activity"}, "itinerary/vn06": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:06Z", "currency": "VND", "date": "2027-02-09", "done": false, "end": "", "notes": "Famous bánh mì; expect a queue.", "place": "Bánh Mì Huỳnh Hoa", "start": "13:30", "status": "", "suggested": true, "title": "Lunch: bánh mì", "type": "Food"}, "itinerary/th14": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:32Z", "currency": "THB", "date": "2027-02-18", "done": false, "end": "", "notes": "Book a table for the view.", "place": "", "start": "19:00", "status": "tobook", "suggested": true, "title": "Rooftop dinner", "type": "Food"}, "itinerary/th13": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:31Z", "currency": "THB", "date": "2027-02-18", "done": false, "end": "17:00", "notes": "Last big shopping day and pasalubong.", "place": "Siam Paragon", "start": "11:00", "status": "", "suggested": true, "title": "Siam malls + MBK + ICONSIAM", "type": "Shopping"}, "itinerary/vn15": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:15Z", "currency": "VND", "date": "2027-02-12", "done": false, "end": "", "notes": "", "place": "Phở Hòa Pasteur", "start": "12:30", "status": "", "suggested": true, "title": "Phở lunch", "type": "Food"}, "itinerary/th01": {"booking": "", "cost": 450, "country": "Thailand", "createdAt": "2026-10-30T02:00:19Z", "currency": "THB", "date": "2027-02-13", "done": false, "end": "", "notes": "Airport Rail Link or Grab. Add your arrival time.", "place": "Suvarnabhumi Airport", "start": "", "status": "", "suggested": true, "title": "Airport → hotel", "type": "Transpo"}, "itinerary/vn12": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:12Z", "currency": "VND", "date": "2027-02-11", "done": false, "end": "15:30", "notes": "", "place": "Independence Palace", "start": "14:00", "status": "", "suggested": true, "title": "Independence Palace", "type": "Activity"}, "itinerary/vn09": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:09Z", "currency": "VND", "date": "2027-02-10", "done": false, "end": "", "notes": "Lively and loud. Keep phones and bags close.", "place": "Bui Vien Walking Street", "start": "19:30", "status": "", "suggested": true, "title": "Bui Vien Walking Street at night", "type": "Food"}, "itinerary/vn07": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:07Z", "currency": "VND", "date": "2027-02-09", "done": false, "end": "17:00", "notes": "Heavy but important. Check closing time before you go.", "place": "War Remnants Museum", "start": "15:00", "status": "", "suggested": true, "title": "War Remnants Museum", "type": "Activity"}, "itinerary/th12": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:30Z", "currency": "THB", "date": "2027-02-17", "done": false, "end": "18:00", "notes": "Old temples and ruins. Skip it if you'd rather have a slow day.", "place": "Ayutthaya Historical Park", "start": "07:30", "status": "tobook", "suggested": true, "title": "Ayutthaya day trip (optional)", "type": "Activity"}, "itinerary/th02": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:20Z", "currency": "PHP", "date": "2027-02-13", "done": false, "end": "", "notes": "Add the hotel address so the map link works.", "place": "", "start": "15:00", "status": "booked", "suggested": true, "title": "Check in to the hotel", "type": "Stay"}, "itinerary/vn13": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:13Z", "currency": "VND", "date": "2027-02-11", "done": false, "end": "", "notes": "Bargain politely.", "place": "Saigon Square", "start": "16:00", "status": "", "suggested": true, "title": "Saigon Square shopping", "type": "Shopping"}, "itinerary/th09": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:27Z", "currency": "THB", "date": "2027-02-15", "done": false, "end": "", "notes": "Best after dark.", "place": "Yaowarat Road", "start": "19:00", "status": "", "suggested": true, "title": "Chinatown street food", "type": "Food"}, "itinerary/vn10": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:10Z", "currency": "VND", "date": "2027-02-11", "done": false, "end": "10:00", "notes": "Beautiful old building. The cathedral is right next door.", "place": "Saigon Central Post Office", "start": "08:30", "status": "", "suggested": true, "title": "Saigon Central Post Office", "type": "Activity"}, "itinerary/vn18": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:18Z", "currency": "PHP", "date": "2027-02-13", "done": false, "end": "", "notes": "Date assumed (Feb 13). Add your flight time and booking number.", "place": "Tan Son Nhat International Airport", "start": "", "status": "booked", "suggested": true, "title": "Fly Ho Chi Minh → Bangkok", "type": "Flight"}, "itinerary/th03": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:21Z", "currency": "THB", "date": "2027-02-13", "done": false, "end": "", "notes": "Street food and stalls; good first night.", "place": "Jodd Fairs Rama 9", "start": "19:00", "status": "", "suggested": true, "title": "Night market dinner", "type": "Food"}, "itinerary/th10": {"booking": "", "cost": 1200, "country": "Thailand", "createdAt": "2026-10-30T02:00:28Z", "currency": "THB", "date": "2027-02-16", "done": false, "end": "15:00", "notes": "Early pickup. Cost is an estimate.", "place": "Damnoen Saduak Floating Market", "start": "06:30", "status": "tobook", "suggested": true, "title": "Floating market + Maeklong railway market tour", "type": "Activity"}, "itinerary/th06": {"booking": "", "cost": 500, "country": "Thailand", "createdAt": "2026-10-30T02:00:24Z", "currency": "THB", "date": "2027-02-15", "done": false, "end": "11:00", "notes": "Dress code: shoulders and knees covered. Go early to beat the crowds.", "place": "Grand Palace Bangkok", "start": "08:30", "status": "", "suggested": true, "title": "Grand Palace & Wat Phra Kaew", "type": "Activity"}, "itinerary/vn04": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:04Z", "currency": "VND", "date": "2027-02-08", "done": false, "end": "20:30", "notes": "Easy first night: street food, then walk the lit-up promenade.", "place": "Nguyen Hue Walking Street", "start": "18:00", "status": "", "suggested": true, "title": "Ben Thanh street food + Nguyen Hue Walking Street", "type": "Food"}, "itinerary/th08": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:26Z", "currency": "THB", "date": "2027-02-15", "done": false, "end": "14:00", "notes": "Cross-river ferry from Tha Tien pier.", "place": "Wat Arun", "start": "13:00", "status": "", "suggested": true, "title": "Ferry across to Wat Arun", "type": "Activity"}, "itinerary/vn14": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:14Z", "currency": "VND", "date": "2027-02-12", "done": false, "end": "12:00", "notes": "Coffee beans, phin filters, dried fruit.", "place": "Ben Thanh Market", "start": "10:00", "status": "", "suggested": true, "title": "Pasalubong at Ben Thanh Market", "type": "Shopping"}, "itinerary/th16": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:34Z", "currency": "PHP", "date": "2027-02-19", "done": false, "end": "", "notes": "Add your flight time and booking number.", "place": "Suvarnabhumi Airport", "start": "", "status": "booked", "suggested": true, "title": "Fly Bangkok → Manila", "type": "Flight"}, "itinerary/th04": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:22Z", "currency": "THB", "date": "2027-02-14", "done": false, "end": "13:00", "notes": "Weekend only, so Sunday is the day. Go early before it gets hot.", "place": "Chatuchak Weekend Market", "start": "09:00", "status": "", "suggested": true, "title": "Chatuchak Weekend Market", "type": "Shopping"}, "itinerary/vn08": {"booking": "", "cost": 800000, "country": "Vietnam", "createdAt": "2026-10-30T02:00:08Z", "currency": "VND", "date": "2027-02-10", "done": false, "end": "17:30", "notes": "Boat ride, fruit orchards, coconut candy. Usually includes lunch. Cost is an estimate.", "place": "Mekong Delta", "start": "07:30", "status": "tobook", "suggested": true, "title": "Mekong Delta day tour", "type": "Activity"}};</script>
+<script src="config.js"></script>
+<script>window.SEED={"reminders/r09-insurance": {"createdAt": "2026-10-30T01:00:09Z", "createdBy": "jonna", "done": false, "phase": "before", "text": "Travel insurance"}, "reminders/r08-mosquito-repellent": {"createdAt": "2026-10-30T01:00:08Z", "createdBy": "jonna", "done": false, "phase": "before", "text": "Mosquito repellent"}, "reminders/r05-sako-bag": {"createdAt": "2026-10-30T01:00:05Z", "createdBy": "jonna", "done": false, "phase": "before", "text": "Sako bag"}, "reminders/r02-erceflora": {"createdAt": "2026-10-30T01:00:02Z", "createdBy": "jonna", "done": false, "phase": "before", "text": "Erceflora"}, "reminders/r03-mini-fan": {"createdAt": "2026-10-30T01:00:03Z", "createdBy": "jonna", "done": false, "phase": "before", "text": "Mini fan", "who": ""}, "reminders/r04-weighing-scale": {"createdAt": "2026-10-30T01:00:04Z", "createdBy": "jonna", "done": false, "note": "For checking baggage weight", "phase": "before", "text": "Weighing scale"}, "reminders/r06-tape": {"createdAt": "2026-10-30T01:00:06Z", "createdBy": "jonna", "done": false, "phase": "before", "text": "Tape"}, "reminders/r07-sunscreen": {"createdAt": "2026-10-30T01:00:07Z", "createdBy": "jonna", "done": false, "phase": "before", "text": "Sunscreen"}, "reminders/r01-universal-charger": {"createdAt": "2026-10-30T01:00:01Z", "createdBy": "jonna", "done": false, "phase": "before", "text": "Universal charger"}, "expenses/booked-flight-sgn-bkk": {"amount": 13300, "category": "Flights", "country": "Before trip", "createdAt": "2026-10-30T00:00:05Z", "currency": "PHP", "date": "2027-02-07", "forWhom": "both", "note": "Booked before the trip. Tap to set who paid.", "paidBy": "migs", "photos": [], "php": 13300, "rates": {"THB": 0.57, "VND": 450}, "status": "paid", "title": "Flight HCMC → Bangkok", "updatedAt": "2026-10-29T23:25:19.838Z"}, "expenses/booked-hotel-bkk": {"amount": 9872.7, "category": "Stay", "country": "Before trip", "createdAt": "2026-10-30T00:00:01Z", "currency": "PHP", "date": "2027-02-07", "forWhom": "both", "note": "Booked before the trip.", "paidBy": "migs", "photos": [], "php": 9872.7, "rates": {"THB": 0.57, "VND": 450}, "status": "paid", "title": "Hotel, Bangkok", "updatedAt": "2026-10-29T23:24:51.745Z"}, "expenses/booked-baggage-jonna": {"amount": 1400, "category": "Flights", "country": "Thailand", "createdAt": "2026-10-30T00:00:03Z", "currency": "PHP", "date": "2027-02-07", "forWhom": "migs", "note": "Baggage for Jonna. Still pending in the budget sheet.", "paidBy": "jonna", "photos": [], "php": 1400, "rates": {"THB": 0.57, "VND": 450}, "status": "unpaid", "title": "Extra baggage", "updatedAt": "2026-10-29T23:34:43.682Z"}, "expenses/booked-flight-mnl-sgn-bkk": {"amount": 22643.86, "category": "Flights", "country": "Before trip", "createdAt": "2026-10-30T00:00:06Z", "currency": "PHP", "date": "2027-02-07", "forWhom": "both", "note": "Booked before the trip. One booking covers both flights. Tap to set who paid.", "paidBy": "migs", "photos": [], "php": 22643.86, "rates": {"THB": 0.57, "VND": 450}, "status": "paid", "title": "Flights MNL ⇄ HCMC + BKK → MNL", "updatedAt": "2026-10-29T23:25:08.196Z"}, "expenses/booked-airbnb-hcmc": {"amount": 5693.53, "category": "Stay", "country": "Before trip", "createdAt": "2026-10-30T00:00:02Z", "currency": "PHP", "date": "2027-02-07", "forWhom": "both", "note": "Booked before the trip.", "paidBy": "jonna", "photos": [], "php": 5693.53, "rates": {"THB": 0.57, "VND": 450}, "status": "paid", "title": "Airbnb, Ho Chi Minh City", "updatedAt": "2026-10-29T23:34:54.192Z"}, "expenses/booked-travel-tax": {"amount": 3240, "category": "Other", "country": "Before trip", "createdAt": "2026-10-30T00:00:04Z", "currency": "PHP", "date": "2027-02-07", "forWhom": "both", "note": "Still pending in the budget sheet.", "paidBy": "", "photos": [], "php": 3240, "rates": {"THB": 0.57, "VND": 450}, "status": "unpaid", "title": "Philippine travel tax (2 × ₱1,620)"}, "settings/trip": {"rates": {"THB": 0.57, "VND": 450}, "route": "Ho Chi Minh → Bangkok · Feb 8–19, 2027", "title": "Jonna & Migs"}, "itinerary/vn01": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:01Z", "currency": "PHP", "date": "2027-02-08", "done": false, "end": "", "notes": "Add your flight time and booking number.", "place": "Tan Son Nhat International Airport", "start": "", "status": "booked", "suggested": true, "title": "Fly Manila → Ho Chi Minh (SGN)", "type": "Flight", "lat": 10.8185, "lng": 106.6588, "geoFor": "Tan Son Nhat International Airport"}, "itinerary/vn02": {"booking": "", "cost": 200000, "country": "Vietnam", "createdAt": "2026-10-30T02:00:02Z", "currency": "VND", "date": "2027-02-08", "done": false, "end": "", "notes": "About 30–45 min to District 1. Book in the Grab app; pickup is outside arrivals.", "place": "Tan Son Nhat International Airport", "start": "", "status": "", "suggested": true, "title": "Grab from the airport to the Airbnb", "type": "Transpo", "lat": 10.8185, "lng": 106.6588, "geoFor": "Tan Son Nhat International Airport"}, "itinerary/th07": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:25Z", "currency": "THB", "date": "2027-02-15", "done": false, "end": "12:30", "notes": "", "place": "Wat Pho", "start": "11:30", "status": "", "suggested": true, "title": "Wat Pho (Reclining Buddha)", "type": "Activity", "lat": 13.7465, "lng": 100.4927, "geoFor": "Wat Pho"}, "itinerary/vn17": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:17Z", "currency": "PHP", "date": "2027-02-13", "done": false, "end": "", "notes": "Leave about 3 hours before your flight.", "place": "", "start": "", "status": "", "suggested": true, "title": "Check out of the Airbnb", "type": "Stay"}, "itinerary/vn05": {"booking": "", "cost": 700000, "country": "Vietnam", "createdAt": "2026-10-30T02:00:05Z", "currency": "VND", "date": "2027-02-09", "done": false, "end": "13:00", "notes": "Most tours pick you up from District 1. Wear comfy shoes and bring water. Cost is an estimate.", "place": "Cu Chi Tunnels", "start": "07:30", "status": "tobook", "suggested": true, "title": "Cu Chi Tunnels half-day tour", "type": "Activity", "lat": 11.0601, "lng": 106.5318, "geoFor": "Cu Chi Tunnels"}, "itinerary/th11": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:29Z", "currency": "THB", "date": "2027-02-16", "done": false, "end": "20:00", "notes": "Pick a spa near the hotel.", "place": "", "start": "19:00", "status": "", "suggested": true, "title": "Thai massage", "type": "Activity"}, "itinerary/th15": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:33Z", "currency": "PHP", "date": "2027-02-19", "done": false, "end": "", "notes": "Leave about 3 hours before your flight.", "place": "", "start": "12:00", "status": "", "suggested": true, "title": "Check out of the hotel", "type": "Stay"}, "itinerary/vn16": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:16Z", "currency": "VND", "date": "2027-02-12", "done": false, "end": "", "notes": "Or a rooftop bar in District 1.", "place": "Saigon Skydeck, Bitexco Financial Tower", "start": "17:30", "status": "", "suggested": true, "title": "Sunset over the city", "type": "Activity", "lat": 10.7716, "lng": 106.7044, "geoFor": "Saigon Skydeck, Bitexco Financial Tower"}, "itinerary/vn11": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:11Z", "currency": "VND", "date": "2027-02-11", "done": false, "end": "", "notes": "Try cà phê sữa đá or egg coffee.", "place": "The Café Apartments, 42 Nguyen Hue", "start": "10:30", "status": "", "suggested": true, "title": "Coffee at The Café Apartments", "type": "Food", "lat": 10.7741, "lng": 106.7045, "geoFor": "The Café Apartments, 42 Nguyen Hue"}, "itinerary/vn03": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:03Z", "currency": "PHP", "date": "2027-02-08", "done": false, "end": "", "notes": "Add the Airbnb address so the map link works.", "place": "", "start": "14:00", "status": "booked", "suggested": true, "title": "Check in to the Airbnb", "type": "Stay"}, "itinerary/th05": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:23Z", "currency": "THB", "date": "2027-02-14", "done": false, "end": "21:00", "notes": "It's Valentine's Day 💗 Book ahead: it sells out.", "place": "Chao Phraya River dinner cruise", "start": "19:00", "status": "tobook", "suggested": true, "title": "Valentine's dinner cruise on the river", "type": "Activity", "lat": 13.7044, "lng": 100.503, "geoFor": "Chao Phraya River dinner cruise"}, "itinerary/vn06": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:06Z", "currency": "VND", "date": "2027-02-09", "done": false, "end": "", "notes": "Famous bánh mì; expect a queue.", "place": "Bánh Mì Huỳnh Hoa", "start": "13:30", "status": "", "suggested": true, "title": "Lunch: bánh mì", "type": "Food", "lat": 10.7712, "lng": 106.6922, "geoFor": "Bánh Mì Huỳnh Hoa"}, "itinerary/th14": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:32Z", "currency": "THB", "date": "2027-02-18", "done": false, "end": "", "notes": "Book a table for the view.", "place": "", "start": "19:00", "status": "tobook", "suggested": true, "title": "Rooftop dinner", "type": "Food"}, "itinerary/th13": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:31Z", "currency": "THB", "date": "2027-02-18", "done": false, "end": "17:00", "notes": "Last big shopping day and pasalubong.", "place": "Siam Paragon", "start": "11:00", "status": "", "suggested": true, "title": "Siam malls + MBK + ICONSIAM", "type": "Shopping", "lat": 13.7462, "lng": 100.5347, "geoFor": "Siam Paragon"}, "itinerary/vn15": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:15Z", "currency": "VND", "date": "2027-02-12", "done": false, "end": "", "notes": "", "place": "Phở Hòa Pasteur", "start": "12:30", "status": "", "suggested": true, "title": "Phở lunch", "type": "Food", "lat": 10.7894, "lng": 106.6893, "geoFor": "Phở Hòa Pasteur"}, "itinerary/th01": {"booking": "", "cost": 450, "country": "Thailand", "createdAt": "2026-10-30T02:00:19Z", "currency": "THB", "date": "2027-02-13", "done": false, "end": "", "notes": "Airport Rail Link or Grab. Add your arrival time.", "place": "Suvarnabhumi Airport", "start": "", "status": "", "suggested": true, "title": "Airport → hotel", "type": "Transpo", "lat": 13.69, "lng": 100.7501, "geoFor": "Suvarnabhumi Airport"}, "itinerary/vn12": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:12Z", "currency": "VND", "date": "2027-02-11", "done": false, "end": "15:30", "notes": "", "place": "Independence Palace", "start": "14:00", "status": "", "suggested": true, "title": "Independence Palace", "type": "Activity", "lat": 10.777, "lng": 106.6953, "geoFor": "Independence Palace"}, "itinerary/vn09": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:09Z", "currency": "VND", "date": "2027-02-10", "done": false, "end": "", "notes": "Lively and loud. Keep phones and bags close.", "place": "Bui Vien Walking Street", "start": "19:30", "status": "", "suggested": true, "title": "Bui Vien Walking Street at night", "type": "Food", "lat": 10.7672, "lng": 106.6934, "geoFor": "Bui Vien Walking Street"}, "itinerary/vn07": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:07Z", "currency": "VND", "date": "2027-02-09", "done": false, "end": "17:00", "notes": "Heavy but important. Check closing time before you go.", "place": "War Remnants Museum", "start": "15:00", "status": "", "suggested": true, "title": "War Remnants Museum", "type": "Activity", "lat": 10.7795, "lng": 106.6921, "geoFor": "War Remnants Museum"}, "itinerary/th12": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:30Z", "currency": "THB", "date": "2027-02-17", "done": false, "end": "18:00", "notes": "Old temples and ruins. Skip it if you'd rather have a slow day.", "place": "Ayutthaya Historical Park", "start": "07:30", "status": "tobook", "suggested": true, "title": "Ayutthaya day trip (optional)", "type": "Activity", "lat": 14.3556, "lng": 100.56, "geoFor": "Ayutthaya Historical Park"}, "itinerary/th02": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:20Z", "currency": "PHP", "date": "2027-02-13", "done": false, "end": "", "notes": "Add the hotel address so the map link works.", "place": "", "start": "15:00", "status": "booked", "suggested": true, "title": "Check in to the hotel", "type": "Stay"}, "itinerary/vn13": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:13Z", "currency": "VND", "date": "2027-02-11", "done": false, "end": "", "notes": "Bargain politely.", "place": "Saigon Square", "start": "16:00", "status": "", "suggested": true, "title": "Saigon Square shopping", "type": "Shopping", "lat": 10.773, "lng": 106.7, "geoFor": "Saigon Square"}, "itinerary/th09": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:27Z", "currency": "THB", "date": "2027-02-15", "done": false, "end": "", "notes": "Best after dark.", "place": "Yaowarat Road", "start": "19:00", "status": "", "suggested": true, "title": "Chinatown street food", "type": "Food", "lat": 13.74, "lng": 100.51, "geoFor": "Yaowarat Road"}, "itinerary/vn10": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:10Z", "currency": "VND", "date": "2027-02-11", "done": false, "end": "10:00", "notes": "Beautiful old building. The cathedral is right next door.", "place": "Saigon Central Post Office", "start": "08:30", "status": "", "suggested": true, "title": "Saigon Central Post Office", "type": "Activity", "lat": 10.7799, "lng": 106.6999, "geoFor": "Saigon Central Post Office"}, "itinerary/vn18": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:18Z", "currency": "PHP", "date": "2027-02-13", "done": false, "end": "", "notes": "Date assumed (Feb 13). Add your flight time and booking number.", "place": "Tan Son Nhat International Airport", "start": "", "status": "booked", "suggested": true, "title": "Fly Ho Chi Minh → Bangkok", "type": "Flight", "lat": 10.8185, "lng": 106.6588, "geoFor": "Tan Son Nhat International Airport"}, "itinerary/th03": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:21Z", "currency": "THB", "date": "2027-02-13", "done": false, "end": "", "notes": "Street food and stalls; good first night.", "place": "Jodd Fairs Rama 9", "start": "19:00", "status": "", "suggested": true, "title": "Night market dinner", "type": "Food", "lat": 13.757, "lng": 100.566, "geoFor": "Jodd Fairs Rama 9"}, "itinerary/th10": {"booking": "", "cost": 1200, "country": "Thailand", "createdAt": "2026-10-30T02:00:28Z", "currency": "THB", "date": "2027-02-16", "done": false, "end": "15:00", "notes": "Early pickup. Cost is an estimate.", "place": "Damnoen Saduak Floating Market", "start": "06:30", "status": "tobook", "suggested": true, "title": "Floating market + Maeklong railway market tour", "type": "Activity", "lat": 13.5196, "lng": 99.959, "geoFor": "Damnoen Saduak Floating Market"}, "itinerary/th06": {"booking": "", "cost": 500, "country": "Thailand", "createdAt": "2026-10-30T02:00:24Z", "currency": "THB", "date": "2027-02-15", "done": false, "end": "11:00", "notes": "Dress code: shoulders and knees covered. Go early to beat the crowds.", "place": "Grand Palace Bangkok", "start": "08:30", "status": "", "suggested": true, "title": "Grand Palace & Wat Phra Kaew", "type": "Activity", "lat": 13.75, "lng": 100.4913, "geoFor": "Grand Palace Bangkok"}, "itinerary/vn04": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:04Z", "currency": "VND", "date": "2027-02-08", "done": false, "end": "20:30", "notes": "Easy first night: street food, then walk the lit-up promenade.", "place": "Nguyen Hue Walking Street", "start": "18:00", "status": "", "suggested": true, "title": "Ben Thanh street food + Nguyen Hue Walking Street", "type": "Food", "lat": 10.774, "lng": 106.7038, "geoFor": "Nguyen Hue Walking Street"}, "itinerary/th08": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:26Z", "currency": "THB", "date": "2027-02-15", "done": false, "end": "14:00", "notes": "Cross-river ferry from Tha Tien pier.", "place": "Wat Arun", "start": "13:00", "status": "", "suggested": true, "title": "Ferry across to Wat Arun", "type": "Activity", "lat": 13.7437, "lng": 100.4888, "geoFor": "Wat Arun"}, "itinerary/vn14": {"booking": "", "cost": null, "country": "Vietnam", "createdAt": "2026-10-30T02:00:14Z", "currency": "VND", "date": "2027-02-12", "done": false, "end": "12:00", "notes": "Coffee beans, phin filters, dried fruit.", "place": "Ben Thanh Market", "start": "10:00", "status": "", "suggested": true, "title": "Pasalubong at Ben Thanh Market", "type": "Shopping", "lat": 10.7725, "lng": 106.698, "geoFor": "Ben Thanh Market"}, "itinerary/th16": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:34Z", "currency": "PHP", "date": "2027-02-19", "done": false, "end": "", "notes": "Add your flight time and booking number.", "place": "Suvarnabhumi Airport", "start": "", "status": "booked", "suggested": true, "title": "Fly Bangkok → Manila", "type": "Flight", "lat": 13.69, "lng": 100.7501, "geoFor": "Suvarnabhumi Airport"}, "itinerary/th04": {"booking": "", "cost": null, "country": "Thailand", "createdAt": "2026-10-30T02:00:22Z", "currency": "THB", "date": "2027-02-14", "done": false, "end": "13:00", "notes": "Weekend only, so Sunday is the day. Go early before it gets hot.", "place": "Chatuchak Weekend Market", "start": "09:00", "status": "", "suggested": true, "title": "Chatuchak Weekend Market", "type": "Shopping", "lat": 13.7999, "lng": 100.55, "geoFor": "Chatuchak Weekend Market"}, "itinerary/vn08": {"booking": "", "cost": 800000, "country": "Vietnam", "createdAt": "2026-10-30T02:00:08Z", "currency": "VND", "date": "2027-02-10", "done": false, "end": "17:30", "notes": "Boat ride, fruit orchards, coconut candy. Usually includes lunch. Cost is an estimate.", "place": "Mekong Delta", "start": "07:30", "status": "tobook", "suggested": true, "title": "Mekong Delta day tour", "type": "Activity", "lat": 10.36, "lng": 106.36, "geoFor": "Mekong Delta"}};</script>
 <script>/* Offline storage for the phone version: data lives on this phone (localStorage + IndexedDB for photos).
    Mimics the small slice of the hosted app's db / assets / user API the app uses. */
 (function () {
@@ -489,14 +503,115 @@ button { cursor: pointer; }
     });
   }
 
-  let ready = null;
+  /* ---------- live cloud sync (Firebase Firestore) when config.js is filled in ---------- */
+  const TRIP_KEY = "jm-trip-code";
+  let CLOUD = null; // { code }
+  const rerender = () => { try { if (typeof render === "function" && typeof S !== "undefined" && S.ready && !document.querySelector("#layer").innerHTML) render(); } catch { /* not ready */ } };
+  const softFail = (e) => { console.warn(e); if (e && e.code === "permission-denied") { try { toast("Sync blocked. Check the Firebase rules."); } catch { /* no toast yet */ } } };
+  function newCode() { const a = "abcdefghjkmnpqrstuvwxyz23456789", r = crypto.getRandomValues(new Uint8Array(28)); return "jm-" + Array.from(r, (x) => a[x % a.length]).join(""); }
+  function askTrip() {
+    return new Promise((res) => {
+      const el = document.createElement("div");
+      el.className = "sheetwrap";
+      el.innerHTML = `<div class="who-pick"><div style="font-size:42px">✈️</div><h2>Connect our trip</h2>
+        <p class="muted">Jonna starts the trip once. Migs joins with the code she sends.</p>
+        <div class="actions" style="justify-content:center"><button class="btn pri" data-start>Start our trip</button></div>
+        <p class="muted small" style="margin:16px 0 6px">Got a code?</p>
+        <input id="trip-code-in" placeholder="Paste the trip code" autocapitalize="off" autocorrect="off" style="width:100%;box-sizing:border-box;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit">
+        <div class="actions" style="justify-content:center;margin-top:10px"><button class="btn" data-join>Join trip</button></div></div>`;
+      el.addEventListener("click", (e) => {
+        if (e.target.closest("[data-start]")) { const c = newCode(); localStorage.setItem(TRIP_KEY, c); el.remove(); res({ code: c, created: true }); }
+        if (e.target.closest("[data-join]")) { const c = el.querySelector("#trip-code-in").value.trim(); if (c.length < 24) { el.querySelector("#trip-code-in").style.borderColor = "var(--rose)"; return; } localStorage.setItem(TRIP_KEY, c); el.remove(); res({ code: c, created: false }); }
+      });
+      document.body.appendChild(el);
+    });
+  }
+  function shrink(blob) {
+    return new Promise((res, rej) => {
+      const img = new Image(), u = URL.createObjectURL(blob);
+      img.onload = () => {
+        let max = 1280, q = 0.8, out = "";
+        for (let i = 0; i < 6; i++) {
+          const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+          const c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          out = c.toDataURL("image/jpeg", q);
+          if (out.length < 700000) break;
+          max = Math.round(max * 0.8); q = Math.max(0.5, q - 0.08);
+        }
+        URL.revokeObjectURL(u); res(out);
+      };
+      img.onerror = () => { URL.revokeObjectURL(u); rej(new Error("Couldn't read that photo")); };
+      img.src = u;
+    });
+  }
+  async function cloudInit() {
+    const base = window.FB_BASE || "https://www.gstatic.com/firebasejs/10.12.2/";
+    const A = await import(base + "firebase-app.js"), F = await import(base + "firebase-firestore.js");
+    const app = A.initializeApp(window.FIREBASE_CONFIG);
+    let fs;
+    try { fs = F.initializeFirestore(app, { localCache: F.persistentLocalCache({ tabManager: F.persistentMultipleTabManager() }) }); }
+    catch { fs = F.getFirestore(app); }
+    let t = localStorage.getItem(TRIP_KEY) ? { code: localStorage.getItem(TRIP_KEY), created: false } : await askTrip();
+    CLOUD = { code: t.code };
+    const P = (p) => "trips/" + t.code + "/" + p;
+    if (t.created) {
+      // first phone: upload the built-in plan plus anything already saved on this phone
+      const all = { ...store.docs };
+      const b = F.writeBatch(fs);
+      for (const [p, d] of Object.entries(all)) b.set(F.doc(fs, P(p)), clean(d));
+      b.commit().catch(softFail);
+      try { const ph = await allPhotos(); for (const [id, bl] of Object.entries(ph)) F.setDoc(F.doc(fs, P("photos/" + id)), { data: await shrink(bl) }).catch(softFail); } catch { /* no local photos */ }
+    }
+    const cdb = {
+      doc(path) {
+        const r = F.doc(fs, P(path));
+        return {
+          async set(d) { F.setDoc(r, d).catch(softFail); },
+          async update(d) { F.updateDoc(r, d).catch(softFail); },
+          async delete() { F.deleteDoc(r).catch(softFail); },
+          onSnapshot(cb, err) { return F.onSnapshot(r, (s) => cb({ id: s.id, exists: s.exists(), data: () => s.data() }), err); }
+        };
+      },
+      collection(name) {
+        const c = F.collection(fs, P(name));
+        return {
+          async add(d) { const r = F.doc(c); F.setDoc(r, d).catch(softFail); return { id: r.id }; },
+          onSnapshot(cb, err) { return F.onSnapshot(c, (s) => cb({ docs: s.docs.map((x) => ({ id: x.id, exists: true, data: () => x.data() })) }), err); }
+        };
+      }
+    };
+    const pcol = F.collection(fs, P("photos"));
+    const cassets = {
+      async upload(blob) { const data = await shrink(blob); const r = F.doc(pcol); URLS[r.id] = data; F.setDoc(r, { data }).catch(softFail); return { id: r.id }; },
+      async delete(id) { delete URLS[id]; F.deleteDoc(F.doc(pcol, id)).catch(softFail); }
+    };
+    await new Promise((res) => {
+      let first = true; const to = setTimeout(res, 4000);
+      F.onSnapshot(pcol, (s) => {
+        let changed = false;
+        s.docChanges().forEach((ch) => { if (ch.type === "removed") { delete URLS[ch.doc.id]; } else { URLS[ch.doc.id] = ch.doc.data().data; } changed = true; });
+        if (first) { first = false; clearTimeout(to); res(); } else if (changed) rerender();
+      }, () => { clearTimeout(to); res(); });
+    });
+    return { db: cdb, assets: cassets };
+  }
+
+  let ready = null, API = null;
   window.claude = {
     use(name) {
       if (!ready) ready = (async () => {
-        try { const ph = await allPhotos(); for (const [k, v] of Object.entries(ph)) URLS[k] = URL.createObjectURL(v); } catch { /* no photos yet */ }
+        if (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.projectId) {
+          try { const c = await cloudInit(); API = { db: c.db, assets: c.assets, user }; }
+          catch (e) { console.warn("Cloud sync unavailable, using this phone only", e); CLOUD = null; }
+        }
+        if (!API) {
+          try { const ph = await allPhotos(); for (const [k, v] of Object.entries(ph)) URLS[k] = URL.createObjectURL(v); } catch { /* no photos yet */ }
+          API = { db, assets, user };
+        }
         await askWho();
       })();
-      return ready.then(() => ({ db, assets, user }[name] || null));
+      return ready.then(() => API[name] || null);
     }
   };
 
@@ -504,6 +619,23 @@ button { cursor: pointer; }
   const b64 = (blob) => new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); });
   window.TripSync = {
     who: () => localStorage.getItem(ME_KEY) || "jonna",
+    cloud: () => CLOUD,
+    async shareCode() {
+      const text = "Our trip code ✈️ Open the Trip app, tap Join trip and paste this:\n" + CLOUD.code;
+      if (navigator.share) { try { await navigator.share({ text }); return; } catch (e) { if (e.name === "AbortError") return; } }
+      try { await navigator.clipboard.writeText(CLOUD.code); toast("Code copied"); } catch { prompt("Copy this code", CLOUD.code); }
+    },
+    cardHtml() {
+      const other = this.who() === "jonna" ? "Migs" : "Jonna", me = this.who() === "jonna" ? "Jonna 🌸" : "Migs 🌊";
+      const whoLine = `<p class="small muted" style="margin:10px 0 0">This phone: <b>${me}</b> · <button id="sync-who" style="background:none;border:0;color:var(--rose);font:inherit;text-decoration:underline;padding:0">switch</button></p>`;
+      if (CLOUD) return `<div class="card"><h3>☁️ Live sync with ${other}</h3>
+        <p class="small muted" style="margin:0 0 10px">On. Anything either of you adds shows up on the other phone right away when you're online. Offline changes sync by themselves once you're back on Wi-Fi or data.</p>
+        <div class="actions"><button class="btn pri" id="sync-code">💌 Send trip code to ${other}</button></div>${whoLine}</div>`;
+      return `<div class="card"><h3>🔄 Sync with ${other}</h3>
+        <p class="small muted" style="margin:0 0 10px">Everything is saved on this phone. Tap <b>Send my updates</b> and AirDrop the file; the other phone taps <b>Load updates</b>. Newest changes win, photos included.</p>
+        <div class="actions" style="flex-wrap:wrap"><button class="btn pri" id="sync-send">📤 Send my updates</button>
+        <label class="btn" style="cursor:pointer">📥 Load updates<input type="file" id="sync-load" accept=".json,application/json" hidden></label></div>${whoLine}</div>`;
+    },
     switchWho() { localStorage.removeItem(ME_KEY); location.reload(); },
     async exportFile() {
       const photos = {};
@@ -758,9 +890,9 @@ function itineraryView() {
       <span style="min-width:0"><b>${k}</b><small>${sub} · ${S.itin.filter((x) => x.country === k).length} stops</small></span></button>`;
   const pills = days.map((d) => { const dt = new Date(d + "T00:00:00"); return `<button class="dpill" data-itday="${d}" aria-pressed="${d === S.itDay}">
       <div class="dw">${dt.toLocaleDateString("en-US", { weekday: "short" })}</div><div class="dn">${dt.getDate()}</div><div class="dc">${ofDay(d).length || "–"}</div></button>`; }).join("");
-  const stop = (x) => `<div class="stop${x.done ? " done" : ""}" data-itopen="${esc(x.id)}">
+  const stop = (x, i) => `<div class="stop${x.done ? " done" : ""}" data-itopen="${esc(x.id)}">
       <div class="tm">${x.start ? `<b>${esc(t12(x.start))}</b>${x.end ? `<small>– ${esc(t12(x.end))}</small>` : ""}` : `<small>Anytime</small>`}</div>
-      <span class="dot"></span>
+      <span class="dot n">${i + 1}</span>
       <div class="sc"><div class="st"><span>${esc(ITYPE_EMOJI[x.type] || "📍")}</span><span>${esc(x.title)}</span>
           ${S.canWrite ? `<button class="ittick" data-ittick="${esc(x.id)}" aria-label="${x.done ? "Mark as not done" : "Mark as done"}">${x.done ? "✓ Done" : "○"}</button>` : ""}</div>
         ${x.place ? `<div class="sp">📍 <a href="${esc(mapUrl(x.place, x.country))}" target="_blank" rel="noopener">${esc(x.place)}</a></div>` : ""}
@@ -775,9 +907,9 @@ function itineraryView() {
     <div class="dayhero"><div><h2>Day ${overall} · ${esc(fmtDay(S.itDay))}</h2>
       <div class="sub">${esc(IT_PLACES[c])} · ${items.length} stop${items.length === 1 ? "" : "s"}${toBook ? ` · <span class="due">${toBook} to book</span>` : ""}</div></div>
       <div style="text-align:right"><div class="small muted">Est. cost</div><div class="num">${peso(est)}</div></div></div>
-    ${items.length ? `<div class="tl">${items.map(stop).join("")}</div>` : `<div class="empty" style="margin-top:12px"><div class="art">🗺️</div><h3>Free day</h3><p>Nothing planned yet. Add a tour, a food stop or a free afternoon.</p></div>`}
+    ${items.length ? `<div class="itmap" id="itmap"></div>${routeRow(items)}<div class="tl">${items.map(stop).join("")}</div>` : `<div class="empty" style="margin-top:12px"><div class="art">🗺️</div><h3>Free day</h3><p>Nothing planned yet. Add a tour, a food stop or a free afternoon.</p></div>`}
     ${S.canWrite ? `<button class="addshop" data-itadd>＋ Add to ${esc(fmtDay(S.itDay))}</button>` : ""}
-    <div class="small muted" style="margin:12px 4px">Tap a stop to edit its time, place, booking or cost. 📍 opens the place in Google Maps. Stops marked 💡 are suggestions: keep, change or delete them.</div>
+    <div class="small muted" style="margin:12px 4px">Numbers show the order for the day, on the list and on the map. Tap a stop to edit its time, place, booking or cost. 📍 opens the place in Google Maps. Stops marked 💡 are suggestions: keep, change or delete them.</div>
     ${idx < days.length - 1 ? `<button class="chip" data-itday="${days[idx + 1]}" style="margin:4px 4px 0">Next day →</button>` : ""}`;
 }
 
@@ -831,7 +963,8 @@ async function saveIt() {
   if (!x.title) { toast("Give the stop a name"); $("#it-title").focus(); return; }
   const body = { country: x.country, date: x.date, start: x.start, end: x.end, type: x.type, title: x.title, place: x.place, notes: x.notes,
     status: x.status || "", booking: x.booking, cost: x.cost ? Number(x.cost) : null, currency: x.currency || "PHP", done: !!x.done,
-    suggested: false, createdAt: x.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString() };
+    suggested: false, createdAt: x.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString(),
+    ...(x.lat != null && x.geoFor === x.place ? { lat: x.lat, lng: x.lng, geoFor: x.geoFor } : {}) };
   try {
     if (x.id) await S.db.doc("itinerary/" + x.id).set(body); else await S.db.collection("itinerary").add(body);
     S.itCountry = x.country; S.itDay = x.date; itDraft = null; $("#layer").innerHTML = ""; render(); toast(x.id ? "Saved" : "Added to the plan");
@@ -988,11 +1121,7 @@ function totalsView() {
       </div>
       <div class="small muted">New purchases convert with these rates. Ones you already saved keep the rate from when you added them.</div>
       ${S.canWrite ? '<div class="actions"><button class="btn pri" id="save-rates">Save trip details &amp; rates</button></div>' : ""}</div>
-    <div class="card"><h3>🔄 Sync with ${TripSync.who() === "jonna" ? "Migs" : "Jonna"}</h3>
-      <p class="small muted" style="margin:0 0 10px">Everything is saved on this phone. To share your updates, tap <b>Send my updates</b> and send the file by AirDrop or Messenger. The other phone taps <b>Load updates</b> and picks that file. Newest changes win, and photos come along too.</p>
-      <div class="actions" style="flex-wrap:wrap"><button class="btn pri" id="sync-send">📤 Send my updates</button>
-      <label class="btn" style="cursor:pointer">📥 Load updates<input type="file" id="sync-load" accept=".json,application/json" hidden></label></div>
-      <p class="small muted" style="margin:10px 0 0">This phone: <b>${TripSync.who() === "jonna" ? "Jonna 🌸" : "Migs 🌊"}</b> · <button class="linkbtn" id="sync-who" style="background:none;border:0;color:var(--rose);font:inherit;text-decoration:underline;padding:0">switch</button></p></div>`;
+    ${TripSync.cardHtml()}`;
 }
 
 /* ---------------------------------------------------------------- add / edit sheet */
@@ -1156,6 +1285,7 @@ document.addEventListener("touchend", (ev) => { if (viewing && sy != null && ev.
 /* ---------------------------------------------------------------- events */
 document.addEventListener("click", async (ev) => {
   if (ev.target.closest && ev.target.closest("#sync-send")) { const r = await TripSync.exportFile(); if (r === "downloaded") toast("Saved the update file"); return; }
+  if (ev.target.closest && ev.target.closest("#sync-code")) { TripSync.shareCode(); return; }
   if (ev.target.closest && ev.target.closest("#sync-who")) { if (confirm("Switch who uses this phone?")) TripSync.switchWho(); return; }
   if (ev.target.closest("a[href]")) return;
   const stopEl = ev.target.closest("[data-itopen]");
@@ -1291,6 +1421,73 @@ document.addEventListener("keydown", (ev) => {
   if (viewing && ev.key === "ArrowRight") step(1);
   if (viewing && ev.key === "ArrowLeft") step(-1);
 });
+
+/* ---------------------------------------------------------------- itinerary map */
+const GMAP = (x) => "https://www.google.com/maps/search/?api=1&query=" + (x.lat != null ? x.lat + "," + x.lng : encodeURIComponent(x.place + ", " + (IT_PLACES[x.country] || "")));
+function routeRow(items) {
+  const pts = items.filter((x) => x.lat != null);
+  if (pts.length < 2) return pts.length ? `<div class="maprow"><a class="chip" href="${esc(GMAP(pts[0]))}" target="_blank" rel="noopener">📍 Open in Google Maps</a></div>` : "";
+  const ll = (x) => x.lat + "," + x.lng;
+  const url = "https://www.google.com/maps/dir/?api=1&origin=" + ll(pts[0]) + "&destination=" + ll(pts[pts.length - 1]) +
+    (pts.length > 2 ? "&waypoints=" + encodeURIComponent(pts.slice(1, -1).slice(0, 8).map(ll).join("|")) : "");
+  return `<div class="maprow"><a class="chip" href="${esc(url)}" target="_blank" rel="noopener">🧭 Open today's route in Google Maps</a></div>`;
+}
+let itMap = null;
+function mountMap() {
+  if (itMap) { try { itMap.remove(); } catch { /* gone */ } itMap = null; }
+  const el = document.getElementById("itmap");
+  if (!el) return;
+  if (!window.L) { el.innerHTML = '<div class="nomap">The map needs internet to load.</div>'; return; }
+  const items = S.itin.filter((x) => x.country === S.itCountry && x.date === S.itDay)
+    .sort((a, b) => (a.start || "").localeCompare(b.start || "") || (a.createdAt || "").localeCompare(b.createdAt || ""));
+  const city = S.itCountry === "Vietnam" ? [10.776, 106.700] : [13.746, 100.523];
+  itMap = L.map(el, { zoomControl: false, attributionControl: true, zoomAnimation: false, fadeAnimation: false, markerZoomAnimation: false }).setView(city, 12);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+    { maxZoom: 19, subdomains: "abcd", attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>' }).addTo(itMap);
+  const pts = [];
+  items.forEach((x, i) => {
+    if (x.lat == null) return;
+    const p = [x.lat, x.lng]; pts.push(p);
+    const icon = L.divIcon({ className: "", html: `<div class="npin${x.done ? " done" : ""}">${i + 1}</div>`, iconSize: [30, 30], iconAnchor: [15, 15] });
+    L.marker(p, { icon, zIndexOffset: 100 - i }).addTo(itMap)
+      .bindPopup(`<b>${i + 1}. ${esc(x.title)}</b><br>${x.start ? esc(t12(x.start)) + " · " : ""}${esc(x.place)}<br><a href="${esc(GMAP(x))}" target="_blank" rel="noopener">Open in Google Maps ↗</a>`);
+  });
+  if (pts.length > 1) L.polyline(pts, { color: "#E5638E", weight: 3, opacity: .7, dashArray: "6 8" }).addTo(itMap);
+  if (pts.length > 1) itMap.fitBounds(pts, { padding: [36, 36], maxZoom: 15 });
+  else if (pts.length === 1) itMap.setView(pts[0], 14);
+  const missing = items.filter((x) => x.lat == null).length;
+  if (!pts.length || missing) {
+    const n = document.createElement("div"); n.className = "nomap";
+    n.textContent = pts.length ? `${missing} stop${missing === 1 ? " has" : "s have"} no place yet. Add a place to pin ${missing === 1 ? "it" : "them"}.` : "Add a place to a stop and it shows up here as a numbered pin.";
+    el.appendChild(n);
+  }
+  geoFill();
+}
+const geoTried = new Set();
+let geoBusy = false;
+async function geoFill() {
+  if (geoBusy || !S.canWrite || !navigator.onLine) return;
+  const todo = S.itin.filter((x) => x.place && (x.lat == null || x.geoFor !== x.place) && !geoTried.has(x.id + "|" + x.place));
+  if (!todo.length) return;
+  geoBusy = true;
+  for (const x of todo) {
+    geoTried.add(x.id + "|" + x.place);
+    try {
+      const q = encodeURIComponent(x.place + ", " + (IT_PLACES[x.country] || ""));
+      const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=vn,th&q=${q}`, { headers: { "Accept-Language": "en" } });
+      let j = r.ok ? await r.json() : [];
+      if (!j.length) {
+        const r2 = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=vn,th&q=${encodeURIComponent(x.place)}`);
+        j = r2.ok ? await r2.json() : [];
+      }
+      if (j.length) await S.db.doc("itinerary/" + x.id).update({ lat: Number(j[0].lat), lng: Number(j[0].lon), geoFor: x.place });
+    } catch { /* offline or lookup failed; try again next time */ }
+    await new Promise((res) => setTimeout(res, 1100));
+  }
+  geoBusy = false;
+}
+const _render = render;
+render = function () { _render(); if (S.view === "itinerary" && S.ready && !S.err) mountMap(); else if (itMap) { try { itMap.remove(); } catch { /* gone */ } itMap = null; } };
 
 /* ---------------------------------------------------------------- start */
 (async function start() {
