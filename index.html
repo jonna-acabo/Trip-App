@@ -383,6 +383,11 @@ button { cursor: pointer; }
 .itmap .nomap { position: absolute; inset: 10px 10px auto 10px; z-index: 500; background: var(--card); color: var(--ink); border-radius: 12px; padding: 8px 10px; font-size: .82rem; box-shadow: var(--shadow); }
 .npin { width: 30px; height: 30px; border-radius: 50%; background: var(--rose); color: #fff; border: 3px solid #fff; display: grid; place-items: center; font: 800 14px/1 var(--body); box-shadow: 0 3px 8px rgba(0,0,0,.3); }
 .npin.done { background: #9DB8A6; }
+.sph { display: flex; gap: 6px; overflow-x: auto; margin-top: 8px; }
+.sph img { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; flex: none; cursor: zoom-in; }
+.lightbox { position: fixed; inset: 0; z-index: 200; background: rgba(20,12,16,.92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; }
+.lightbox img { max-width: 100%; max-height: 82vh; border-radius: 16px; }
+.lightbox span { color: #fff; font-size: .8rem; opacity: .7; }
 .maprow { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 12px; }
 .maprow a { text-decoration: none; }
 .stop .dot.n { width: 26px; height: 26px; margin-top: 10px; display: grid; place-items: center; font: 800 12px/1 var(--body); color: var(--rose); }
@@ -897,6 +902,7 @@ function itineraryView() {
           ${S.canWrite ? `<button class="ittick" data-ittick="${esc(x.id)}" aria-label="${x.done ? "Mark as not done" : "Mark as done"}">${x.done ? "✓ Done" : "○"}</button>` : ""}</div>
         ${x.place ? `<div class="sp">📍 <a href="${esc(mapUrl(x.place, x.country))}" target="_blank" rel="noopener">${esc(x.place)}</a></div>` : ""}
         ${x.notes ? `<div class="sn">${esc(x.notes)}</div>` : ""}
+        ${(x.photos || []).length ? `<div class="sph">${x.photos.map((id) => `<img src="${blob(esc(id))}" data-itphoto="${esc(id)}" alt="Photo for ${esc(x.title)}" loading="lazy">`).join("")}</div>` : ""}
         <div class="stags">${x.status === "booked" ? '<span class="stag ok">✅ Booked</span>' : x.status === "tobook" ? '<span class="stag todo">⏳ To book</span>' : ""}
           ${x.booking ? `<span class="stag">🎫 ${esc(x.booking)}</span>` : ""}
           ${x.cost ? `<span class="stag num">${esc(local(Number(x.cost), x.currency || "PHP"))}${(x.currency || "PHP") !== "PHP" ? " · " + peso(toPhp(Number(x.cost), x.currency)) : ""}</span>` : ""}
@@ -915,7 +921,7 @@ function itineraryView() {
 
 let itDraft = null;
 function openItSheet(x) {
-  itDraft = x ? { ...x } : { id: null, country: S.itCountry, date: S.itDay, start: "", end: "", type: "Activity", title: "", place: "", notes: "",
+  itDraft = x ? { ...x, photos: [...(x.photos || [])], newFiles: [], removed: [] } : { photos: [], newFiles: [], removed: [], id: null, country: S.itCountry, date: S.itDay, start: "", end: "", type: "Activity", title: "", place: "", notes: "",
     status: "", booking: "", cost: "", currency: S.itCountry === "Vietnam" ? "VND" : "THB", done: false };
   if (!x) { const last = S.itin.filter((i) => i.country === itDraft.country && i.date === itDraft.date && (i.end || i.start)).map((i) => i.end || i.start).sort().pop(); itDraft.start = last || "09:00"; }
   itDraft.confirming = false;
@@ -942,6 +948,11 @@ function drawItSheet() {
     <label class="field"><span>Confirmation / booking no. (optional)</span><input class="inp" id="it-booking" maxlength="60" placeholder="e.g. Klook #12345" value="${esc(x.booking)}"></label>
     <label class="field"><span>Estimated cost (optional)</span><div class="amountrow"><input class="inp" id="it-cost" inputmode="decimal" placeholder="0" value="${esc(x.cost)}">
       ${seg("currency", [["VND", "₫"], ["THB", "฿"], ["PHP", "₱"]], x.currency || "PHP")}</div></label>
+    <div class="field"><span>Photos &amp; screenshots (landmarks, directions, tickets)</span><div class="thumbs">
+      ${x.photos.map((id) => `<div class="thumb"><img src="${blob(esc(id))}" alt=""><button type="button" data-itrmold="${esc(id)}" aria-label="Remove photo">✕</button></div>`).join("")}
+      ${x.newFiles.map((f, k) => `<div class="thumb"><img src="${f.preview}" alt=""><button type="button" data-itrmnew="${k}" aria-label="Remove photo">✕</button></div>`).join("")}
+      ${S.assets ? `<label class="addph">📷<br>Add<input type="file" id="it-files" accept="image/*" multiple></label>` : ""}
+    </div>${x.saving ? `<div class="small muted" style="margin-top:6px">${esc(x.saving)}</div>` : ""}</div>
     <label class="field"><span>Notes</span><textarea class="inp" id="it-notes" rows="3" maxlength="600" placeholder="Meeting point, what to bring, dress code, pickup time…">${esc(x.notes)}</textarea></label>
     <div class="actions">
       ${x.id ? `<button type="button" class="btn danger" data-itaskdel>Delete</button>` : ""}
@@ -961,7 +972,20 @@ async function saveIt() {
   readIt();
   const x = itDraft;
   if (!x.title) { toast("Give the stop a name"); $("#it-title").focus(); return; }
-  const body = { country: x.country, date: x.date, start: x.start, end: x.end, type: x.type, title: x.title, place: x.place, notes: x.notes,
+  if (x.busy) return;
+  x.busy = true;
+  try {
+    for (let k = 0; k < x.newFiles.length; k++) {
+      x.saving = `Uploading photo ${k + 1} of ${x.newFiles.length}…`; drawItSheet();
+      const b = await compress(x.newFiles[k].file);
+      const r = await S.assets.upload(b, { type: "image/jpeg" });
+      x.photos.push(r.id);
+    }
+    x.newFiles.forEach((f) => URL.revokeObjectURL(f.preview)); x.newFiles = [];
+  } catch { x.busy = false; x.saving = ""; drawItSheet(); toast("Couldn't upload a photo. Try again."); return; }
+  x.busy = false; x.saving = "";
+  for (const id of x.removed) { try { await S.assets.delete(id); } catch { /* already gone */ } }
+  const body = { photos: x.photos, country: x.country, date: x.date, start: x.start, end: x.end, type: x.type, title: x.title, place: x.place, notes: x.notes,
     status: x.status || "", booking: x.booking, cost: x.cost ? Number(x.cost) : null, currency: x.currency || "PHP", done: !!x.done,
     suggested: false, createdAt: x.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString(),
     ...(x.lat != null && x.geoFor === x.place ? { lat: x.lat, lng: x.lng, geoFor: x.geoFor } : {}) };
@@ -1285,6 +1309,9 @@ document.addEventListener("touchend", (ev) => { if (viewing && sy != null && ev.
 /* ---------------------------------------------------------------- events */
 document.addEventListener("click", async (ev) => {
   if (ev.target.closest && ev.target.closest("#sync-send")) { const r = await TripSync.exportFile(); if (r === "downloaded") toast("Saved the update file"); return; }
+  if (ev.target.closest && ev.target.closest("[data-itphoto]")) { ev.stopPropagation(); const v = document.createElement("div"); v.className = "lightbox"; v.innerHTML = `<img src="${blob(ev.target.closest("[data-itphoto]").dataset.itphoto)}" alt=""><span>Tap anywhere to close</span>`; v.onclick = () => v.remove(); document.body.appendChild(v); return; }
+  if (ev.target.closest && ev.target.closest("[data-itrmnew]")) { readIt(); const f = itDraft.newFiles.splice(Number(ev.target.closest("[data-itrmnew]").dataset.itrmnew), 1)[0]; if (f) URL.revokeObjectURL(f.preview); drawItSheet(); return; }
+  if (ev.target.closest && ev.target.closest("[data-itrmold]")) { readIt(); const id = ev.target.closest("[data-itrmold]").dataset.itrmold; itDraft.photos = itDraft.photos.filter((i) => i !== id); itDraft.removed.push(id); drawItSheet(); return; }
   if (ev.target.closest && ev.target.closest("#sync-code")) { TripSync.shareCode(); return; }
   if (ev.target.closest && ev.target.closest("#sync-who")) { if (confirm("Switch who uses this phone?")) TripSync.switchWho(); return; }
   if (ev.target.closest("a[href]")) return;
@@ -1322,7 +1349,7 @@ document.addEventListener("click", async (ev) => {
   if (t.dataset.itset) { readIt(); itDraft[t.dataset.itset] = t.dataset.val; drawItSheet(); return; }
   if (t.hasAttribute("data-itaskdel")) { readIt(); itDraft.confirming = true; drawItSheet(); return; }
   if (t.hasAttribute("data-itnodel")) { readIt(); itDraft.confirming = false; drawItSheet(); return; }
-  if (t.hasAttribute("data-itdodel")) { try { await S.db.doc("itinerary/" + itDraft.id).delete(); itDraft = null; $("#layer").innerHTML = ""; toast("Removed"); } catch { toast("Couldn't delete. Try again."); } return; }
+  if (t.hasAttribute("data-itdodel")) { try { for (const id of (itDraft.photos || []).concat(itDraft.removed || [])) { try { await S.assets.delete(id); } catch { /* gone */ } } await S.db.doc("itinerary/" + itDraft.id).delete(); itDraft = null; $("#layer").innerHTML = ""; toast("Removed"); } catch { toast("Couldn't delete. Try again."); } return; }
   if (t.hasAttribute("data-itlog")) {
     readIt(); const x = itDraft; itDraft = null;
     openSheet(null, { title: x.title, amount: x.cost, currency: x.currency || "PHP", category: ITYPE_TO_CAT[x.type] || "Other", country: x.country, date: x.date });
@@ -1410,6 +1437,7 @@ document.addEventListener("input", (ev) => {
   }
 });
 document.addEventListener("change", async (ev) => {
+  if (ev.target.id === "it-files" && itDraft) { readIt(); for (const f of ev.target.files) if (f.type.startsWith("image/") || /\.(heic|heif|jpe?g|png|webp|gif)$/i.test(f.name)) itDraft.newFiles.push({ file: f, preview: URL.createObjectURL(f) }); drawItSheet(); return; }
   if (ev.target.id === "sync-load" && ev.target.files[0]) { try { const n = await TripSync.importFile(ev.target.files[0]); toast(n ? `Loaded ${n} update${n === 1 ? "" : "s"} 💕` : "Already up to date"); } catch { toast("That isn't a trip update file"); } ev.target.value = ""; return; }
   if (ev.target.id !== "f-files") return;
   readForm();
