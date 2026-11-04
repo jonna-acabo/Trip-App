@@ -1,4 +1,4 @@
-const C = "jm-trip-v5";
+const C = "jm-trip-v8";
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(C).then((c) => c.addAll(["./", "index.html", "config.js", "icon-180.png", "manifest.json"])).then(() => self.skipWaiting())); });
 self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
 self.addEventListener("fetch", (e) => {

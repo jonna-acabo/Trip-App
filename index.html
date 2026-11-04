@@ -379,10 +379,18 @@ button { cursor: pointer; }
 .who-pick { background: var(--bg); color: var(--ink); border-radius: 24px; padding: 28px 22px; text-align: center; max-width: 360px; width: 100%; }
 .who-pick h2 { font: 600 1.3rem var(--display); margin: 8px 0 4px; }
 .top { padding-top: env(safe-area-inset-top); }
-.itmap { height: 280px; border-radius: 20px; overflow: hidden; margin: 12px 0 8px; box-shadow: var(--shadow); background: var(--rose-soft); position: relative; z-index: 0; }
+.itmap { height: 380px; border-radius: 20px; overflow: hidden; margin: 12px 0 8px; box-shadow: var(--shadow); background: var(--rose-soft); position: relative; z-index: 0; }
 .itmap .nomap { position: absolute; inset: 10px 10px auto 10px; z-index: 500; background: var(--card); color: var(--ink); border-radius: 12px; padding: 8px 10px; font-size: .82rem; box-shadow: var(--shadow); }
 .npin { width: 30px; height: 30px; border-radius: 50%; background: var(--rose); color: #fff; border: 3px solid #fff; display: grid; place-items: center; font: 800 14px/1 var(--body); box-shadow: 0 3px 8px rgba(0,0,0,.3); }
 .npin.done { background: #9DB8A6; }
+.pwrap { position: relative; width: 100%; height: 100%; }
+.ppin { position: relative; width: 42px; height: 42px; border-radius: 12px; border: 3px solid #fff; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,.35); box-sizing: border-box; }
+.ppin img { width: 100%; height: 100%; object-fit: cover; border-radius: 9px; display: block; }
+.ppin b { position: absolute; top: -10px; right: -10px; width: 22px; height: 22px; border-radius: 50%; background: var(--rose); color: #fff; display: grid; place-items: center; font: 800 11px/1 var(--body); border: 2px solid #fff; }
+.ppin.done b { background: #9DB8A6; }
+.itmap .plabel { display: none; }
+.itmap.showlabels .plabel { display: block; }
+.plabel { position: absolute; left: 50%; top: calc(100% + 3px); transform: translateX(-50%); white-space: nowrap; font: 800 11px/1.2 var(--body); color: #3B2A33; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; pointer-events: none; }
 .sph { display: flex; gap: 6px; overflow-x: auto; margin-top: 8px; }
 .sph img { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; flex: none; cursor: zoom-in; }
 .lightbox { position: fixed; inset: 0; z-index: 200; background: rgba(20,12,16,.92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; }
@@ -943,7 +951,9 @@ function drawItSheet() {
       <label class="field"><span>Start</span><input class="inp" type="time" id="it-start" value="${esc(x.start)}"></label>
       <label class="field"><span>End (optional)</span><input class="inp" type="time" id="it-end" value="${esc(x.end)}"></label>
     </div>
-    <label class="field"><span>Place</span><input class="inp" id="it-place" maxlength="120" placeholder="Name or address, for the map link" value="${esc(x.place)}"></label>
+    <label class="field"><span>Place</span><input class="inp" id="it-place" maxlength="220" placeholder="Name or address, for the map link" value="${esc(x.place)}"></label>
+    <label class="field"><span>Exact pin (optional)</span><input class="inp" id="it-ll" autocomplete="off" placeholder="Paste coordinates or a Google Maps link" value="${x.pinManual && x.lat != null ? esc(x.lat + ", " + x.lng) : ""}">
+      <small class="muted" style="display:block;margin-top:4px">Pin missing or in the wrong spot? In Google Maps on a laptop, right-click the place and click the numbers at the top to copy them. On iPhone, press and hold the spot, then copy the numbers in the search bar. Paste them here.</small></label>
     <div class="field"><span>Booking</span>${seg("status", [["", "Not needed"], ["tobook", "⏳ To book"], ["booked", "✅ Booked"]], x.status || "")}</div>
     <label class="field"><span>Confirmation / booking no. (optional)</span><input class="inp" id="it-booking" maxlength="60" placeholder="e.g. Klook #12345" value="${esc(x.booking)}"></label>
     <label class="field"><span>Estimated cost (optional)</span><div class="amountrow"><input class="inp" id="it-cost" inputmode="decimal" placeholder="0" value="${esc(x.cost)}">
@@ -966,6 +976,10 @@ function readIt() {
   const x = itDraft;
   x.title = $("#it-title").value.trim(); x.date = $("#it-date").value; x.country = $("#it-country").value;
   x.start = $("#it-start").value; x.end = $("#it-end").value; x.place = $("#it-place").value.trim();
+  const llv = ($("#it-ll")?.value || "").trim();
+  const m = llv.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) || llv.match(/(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})/);
+  if (m) { x.lat = Number(m[1]); x.lng = Number(m[2]); x.geoFor = x.place; x.pinManual = true; }
+  else if (x.pinManual) { x.pinManual = false; x.lat = null; x.lng = null; x.geoFor = ""; }
   x.booking = $("#it-booking").value.trim(); x.cost = $("#it-cost").value.replace(/,/g, "").trim(); x.notes = $("#it-notes").value.trim();
 }
 async function saveIt() {
@@ -988,7 +1002,7 @@ async function saveIt() {
   const body = { photos: x.photos, country: x.country, date: x.date, start: x.start, end: x.end, type: x.type, title: x.title, place: x.place, notes: x.notes,
     status: x.status || "", booking: x.booking, cost: x.cost ? Number(x.cost) : null, currency: x.currency || "PHP", done: !!x.done,
     suggested: false, createdAt: x.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString(),
-    ...(x.lat != null && x.geoFor === x.place ? { lat: x.lat, lng: x.lng, geoFor: x.geoFor } : {}) };
+    pinManual: !!x.pinManual, ...(x.lat != null && x.geoFor === x.place ? { lat: x.lat, lng: x.lng, geoFor: x.geoFor } : {}) };
   try {
     if (x.id) await S.db.doc("itinerary/" + x.id).set(body); else await S.db.collection("itinerary").add(body);
     S.itCountry = x.country; S.itDay = x.date; itDraft = null; $("#layer").innerHTML = ""; render(); toast(x.id ? "Saved" : "Added to the plan");
@@ -1469,20 +1483,31 @@ function mountMap() {
   const items = S.itin.filter((x) => x.country === S.itCountry && x.date === S.itDay)
     .sort((a, b) => (a.start || "").localeCompare(b.start || "") || (a.createdAt || "").localeCompare(b.createdAt || ""));
   const city = S.itCountry === "Vietnam" ? [10.776, 106.700] : [13.746, 100.523];
-  itMap = L.map(el, { zoomControl: false, attributionControl: true, zoomAnimation: false, fadeAnimation: false, markerZoomAnimation: false }).setView(city, 12);
+  itMap = L.map(el, { zoomControl: true, attributionControl: true, zoomAnimation: false, fadeAnimation: false, markerZoomAnimation: false }).setView(city, 12);
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",
     { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(itMap);
   const pts = [];
   items.forEach((x, i) => {
     if (x.lat == null) return;
     const p = [x.lat, x.lng]; pts.push(p);
-    const icon = L.divIcon({ className: "", html: `<div class="npin${x.done ? " done" : ""}">${i + 1}</div>`, iconSize: [30, 30], iconAnchor: [15, 15] });
+    const ph = (x.photos || [])[0], short = x.title.length > 22 ? x.title.slice(0, 21) + "…" : x.title;
+    const icon = ph
+      ? L.divIcon({ className: "", html: `<div class="pwrap"><div class="ppin${x.done ? " done" : ""}"><img src="${blob(ph)}" alt=""><b>${i + 1}</b></div><div class="plabel">${esc(short)}</div></div>`, iconSize: [42, 42], iconAnchor: [21, 21] })
+      : L.divIcon({ className: "", html: `<div class="pwrap"><div class="npin${x.done ? " done" : ""}">${i + 1}</div><div class="plabel">${esc(short)}</div></div>`, iconSize: [30, 30], iconAnchor: [15, 15] });
     L.marker(p, { icon, zIndexOffset: 100 - i }).addTo(itMap)
       .bindPopup(`<b>${i + 1}. ${esc(x.title)}</b><br>${x.start ? esc(t12(x.start)) + " · " : ""}${esc(x.place)}<br><a href="${esc(GMAP(x))}" target="_blank" rel="noopener">Open in Google Maps ↗</a>`);
   });
-  if (pts.length > 1) L.polyline(pts, { color: "#E5638E", weight: 3, opacity: .7, dashArray: "6 8" }).addTo(itMap);
-  if (pts.length > 1) itMap.fitBounds(pts, { padding: [36, 36], maxZoom: 15 });
-  else if (pts.length === 1) itMap.setView(pts[0], 14);
+  if (pts.length > 1) L.polyline(pts, { color: "#E5638E", weight: 4, opacity: .8 }).addTo(itMap);
+  const fit = () => {
+    if (!itMap) return;
+    itMap.invalidateSize();
+    if (pts.length > 1) itMap.fitBounds(pts, { padding: [30, 30], maxZoom: 17 });
+    else if (pts.length === 1) itMap.setView(pts[0], 15);
+    else itMap.setView(city, 13);
+  };
+  const labels = () => { if (itMap) el.classList.toggle("showlabels", itMap.getZoom() >= 16); };
+  itMap.on("zoomend", labels);
+  fit(); setTimeout(fit, 80); setTimeout(() => { fit(); labels(); }, 400);
   const missing = items.filter((x) => x.lat == null).length;
   if (!pts.length || missing) {
     const n = document.createElement("div"); n.className = "nomap";
@@ -1493,24 +1518,46 @@ function mountMap() {
 }
 const geoTried = new Set();
 let geoBusy = false;
+const BBOX = { Vietnam: "102.1,8.2,109.6,23.4", Thailand: "97.3,5.6,105.7,20.5" };
+const CENTER = { Vietnam: [10.776, 106.700], Thailand: [13.746, 100.523] };
+function geoQueries(place) {
+  const q = new Set();
+  const clean = place.replace(/\b\d{5,6}\b/g, "").replace(/,\s*(Vietnam|Viet Nam|Thailand)\s*$/i, "").replace(/\s+/g, " ").trim();
+  q.add(clean);
+  if (clean.includes("|")) q.add(clean.split("|")[0].trim());
+  const parts = clean.split(",").map((t) => t.trim()).filter(Boolean);
+  if (parts.length > 1) { q.add(parts[0]); const addr = parts.slice(1).join(", "); if (/\d/.test(addr)) q.add(addr); }
+  return [...q].filter((t) => t.length > 2);
+}
+async function photon(q, country) {
+  const [la, lo] = CENTER[country] || CENTER.Vietnam;
+  const r = await fetch(`https://photon.komoot.io/api/?limit=1&lang=en&lat=${la}&lon=${lo}&bbox=${BBOX[country] || BBOX.Vietnam}&q=${encodeURIComponent(q)}`);
+  if (!r.ok) return null;
+  const f = (await r.json()).features?.[0];
+  return f ? { lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] } : null;
+}
+async function nominatim(q, country) {
+  const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=${country === "Thailand" ? "th" : "vn"}&q=${encodeURIComponent(q + ", " + (IT_PLACES[country] || ""))}`, { headers: { "Accept-Language": "en" } });
+  if (!r.ok) return null;
+  const j = await r.json();
+  return j.length ? { lat: Number(j[0].lat), lng: Number(j[0].lon) } : null;
+}
 async function geoFill() {
   if (geoBusy || !S.canWrite || !navigator.onLine) return;
-  const todo = S.itin.filter((x) => x.place && (x.lat == null || x.geoFor !== x.place) && !geoTried.has(x.id + "|" + x.place));
+  const todo = S.itin.filter((x) => x.place && !x.pinManual && (x.lat == null || x.geoFor !== x.place) && !geoTried.has(x.id + "|" + x.place));
   if (!todo.length) return;
   geoBusy = true;
   for (const x of todo) {
     geoTried.add(x.id + "|" + x.place);
-    try {
-      const q = encodeURIComponent(x.place + ", " + (IT_PLACES[x.country] || ""));
-      const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=vn,th&q=${q}`, { headers: { "Accept-Language": "en" } });
-      let j = r.ok ? await r.json() : [];
-      if (!j.length) {
-        const r2 = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=vn,th&q=${encodeURIComponent(x.place)}`);
-        j = r2.ok ? await r2.json() : [];
-      }
-      if (j.length) await S.db.doc("itinerary/" + x.id).update({ lat: Number(j[0].lat), lng: Number(j[0].lon), geoFor: x.place });
-    } catch { /* offline or lookup failed; try again next time */ }
-    await new Promise((res) => setTimeout(res, 1100));
+    let hit = null;
+    for (const q of geoQueries(x.place)) {
+      try { hit = await photon(q, x.country); } catch { /* try next */ }
+      if (hit) break;
+      try { hit = await nominatim(q, x.country); } catch { /* try next */ }
+      await new Promise((res) => setTimeout(res, 1100));
+      if (hit) break;
+    }
+    if (hit) { try { await S.db.doc("itinerary/" + x.id).update({ lat: hit.lat, lng: hit.lng, geoFor: x.place }); } catch { /* offline */ } }
   }
   geoBusy = false;
 }
