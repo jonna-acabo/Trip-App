@@ -1523,10 +1523,15 @@ const CENTER = { Vietnam: [10.776, 106.700], Thailand: [13.746, 100.523] };
 function geoQueries(place) {
   const q = new Set();
   const clean = place.replace(/\b\d{5,6}\b/g, "").replace(/,\s*(Vietnam|Viet Nam|Thailand)\s*$/i, "").replace(/\s+/g, " ").trim();
-  q.add(clean);
-  if (clean.includes("|")) q.add(clean.split("|")[0].trim());
   const parts = clean.split(",").map((t) => t.trim()).filter(Boolean);
-  if (parts.length > 1) { q.add(parts[0]); const addr = parts.slice(1).join(", "); if (/\d/.test(addr)) q.add(addr); }
+  // 1) a part that starts with a house number ("170 Trần Hưng Đạo, …") is the most reliable
+  const n = parts.findIndex((t) => /^\d+[A-Za-z]?(\/\d+[A-Za-z]?)*\s/.test(t));
+  if (n >= 0) q.add(parts.slice(n).join(", "));
+  // 2) the whole text if it already starts with a number
+  if (/^\d/.test(clean)) q.add(clean);
+  // 3) the place name on its own, then the full text
+  q.add((clean.includes("|") ? clean.split("|")[0] : parts[0] || clean).trim());
+  q.add(clean);
   return [...q].filter((t) => t.length > 2);
 }
 async function photon(q, country) {
@@ -1557,6 +1562,7 @@ async function geoFill() {
       await new Promise((res) => setTimeout(res, 1100));
       if (hit) break;
     }
+    if (hit) { const c = CENTER[x.country] || CENTER.Vietnam; if (Math.abs(hit.lat - c[0]) > 0.4 || Math.abs(hit.lng - c[1]) > 0.4) hit = null; }
     if (hit) { try { await S.db.doc("itinerary/" + x.id).update({ lat: hit.lat, lng: hit.lng, geoFor: x.place }); } catch { /* offline */ } }
   }
   geoBusy = false;
